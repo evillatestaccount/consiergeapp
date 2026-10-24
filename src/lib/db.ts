@@ -64,6 +64,20 @@ async function checkPostgres(): Promise<boolean> {
   }
 }
 
+// Automatic retry helper for serverless database compute cold starts and reconnects
+async function withPrismaRetry<T>(queryFn: () => Promise<T>, retries = 1): Promise<T> {
+  try {
+    return await queryFn();
+  } catch (err) {
+    if (retries > 0) {
+      // Brief pause to allow Neon compute wake-up or connection re-establishment
+      await new Promise((res) => setTimeout(res, 400));
+      return await queryFn();
+    }
+    throw err;
+  }
+}
+
 function loadLocalStore(): DatabaseStore {
   if (inMemoryStore) return inMemoryStore;
 
@@ -108,10 +122,12 @@ export async function getCities(options?: { onlyActive?: boolean }): Promise<Cit
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const cities = await prisma.city.findMany({
-        where: options?.onlyActive ? { isActive: true } : undefined,
-        orderBy: { name: 'asc' },
-      });
+      const cities = await withPrismaRetry(() =>
+        prisma.city.findMany({
+          where: options?.onlyActive ? { isActive: true } : undefined,
+          orderBy: { name: 'asc' },
+        })
+      );
       return cities.map(c => ({
         ...c,
         createdAt: c.createdAt.toISOString(),
@@ -135,7 +151,9 @@ export async function getCityBySlug(slug?: string): Promise<City | null> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const city = await prisma.city.findUnique({ where: { slug: slug.toLowerCase() } });
+      const city = await withPrismaRetry(() =>
+        prisma.city.findUnique({ where: { slug: slug.toLowerCase() } })
+      );
       if (city) {
         return {
           ...city,
@@ -164,15 +182,17 @@ export async function createCity(data: {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const created = await prisma.city.create({
-        data: {
-          name: data.name,
-          slug: data.slug.toLowerCase(),
-          stateOrCountry: data.stateOrCountry,
-          heroImage: data.heroImage,
-          isActive: data.isActive ?? true,
-        },
-      });
+      const created = await withPrismaRetry(() =>
+        prisma.city.create({
+          data: {
+            name: data.name,
+            slug: data.slug.toLowerCase(),
+            stateOrCountry: data.stateOrCountry,
+            heroImage: data.heroImage,
+            isActive: data.isActive ?? true,
+          },
+        })
+      );
       return {
         ...created,
         createdAt: created.createdAt.toISOString(),
@@ -206,13 +226,15 @@ export async function updateCity(
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const updated = await prisma.city.update({
-        where: { id },
-        data: {
-          ...data,
-          slug: data.slug ? data.slug.toLowerCase() : undefined,
-        },
-      });
+      const updated = await withPrismaRetry(() =>
+        prisma.city.update({
+          where: { id },
+          data: {
+            ...data,
+            slug: data.slug ? data.slug.toLowerCase() : undefined,
+          },
+        })
+      );
       return {
         ...updated,
         createdAt: updated.createdAt.toISOString(),
@@ -281,16 +303,18 @@ export async function getListings(filter: GetListingsFilter = {}): Promise<Compa
         where.languages = { has: filter.language };
       }
 
-      const listings = await prisma.companionListing.findMany({
-        where,
-        include: {
-          city: true,
-          editor: {
-            select: { id: true, name: true, email: true },
+      const listings = await withPrismaRetry(() =>
+        prisma.companionListing.findMany({
+          where,
+          include: {
+            city: true,
+            editor: {
+              select: { id: true, name: true, email: true },
+            },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+          orderBy: { createdAt: 'desc' },
+        })
+      );
 
       let results: CompanionListing[] = listings.map(l => ({
         ...l,
@@ -375,15 +399,17 @@ export async function getListingById(id: string): Promise<CompanionListing | nul
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const listing = await prisma.companionListing.findUnique({
-        where: { id },
-        include: {
-          city: true,
-          editor: {
-            select: { id: true, name: true, email: true },
+      const listing = await withPrismaRetry(() =>
+        prisma.companionListing.findUnique({
+          where: { id },
+          include: {
+            city: true,
+            editor: {
+              select: { id: true, name: true, email: true },
+            },
           },
-        },
-      });
+        })
+      );
       if (listing) {
         return {
           ...listing,
@@ -414,27 +440,29 @@ export async function createListing(data: Omit<CompanionListing, 'id' | 'created
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const created = await prisma.companionListing.create({
-        data: {
-          editorId: data.editorId,
-          fullName: data.fullName,
-          headline: data.headline,
-          cityId: data.cityId,
-          citySlug: data.citySlug.toLowerCase(),
-          languages: data.languages,
-          services: data.services,
-          hourlyRate: Number(data.hourlyRate),
-          dailyRate: Number(data.dailyRate),
-          currency: data.currency || 'USD',
-          whatsapp: data.whatsapp || null,
-          availability: data.availability as any,
-          bio: data.bio,
-          images: data.images,
-          status: data.status as any,
-          verificationBadge: data.verificationBadge ?? false,
-        },
-        include: { city: true },
-      });
+      const created = await withPrismaRetry(() =>
+        prisma.companionListing.create({
+          data: {
+            editorId: data.editorId,
+            fullName: data.fullName,
+            headline: data.headline,
+            cityId: data.cityId,
+            citySlug: data.citySlug.toLowerCase(),
+            languages: data.languages,
+            services: data.services,
+            hourlyRate: Number(data.hourlyRate),
+            dailyRate: Number(data.dailyRate),
+            currency: data.currency || 'USD',
+            whatsapp: data.whatsapp || null,
+            availability: data.availability as any,
+            bio: data.bio,
+            images: data.images,
+            status: data.status as any,
+            verificationBadge: data.verificationBadge ?? false,
+          },
+          include: { city: true },
+        })
+      );
       return {
         ...created,
         createdAt: created.createdAt.toISOString(),
@@ -473,11 +501,13 @@ export async function updateListing(
       if (data.dailyRate !== undefined) updatePayload.dailyRate = Number(data.dailyRate);
       if (data.citySlug) updatePayload.citySlug = data.citySlug.toLowerCase();
 
-      const updated = await prisma.companionListing.update({
-        where: { id },
-        data: updatePayload,
-        include: { city: true },
-      });
+      const updated = await withPrismaRetry(() =>
+        prisma.companionListing.update({
+          where: { id },
+          data: updatePayload,
+          include: { city: true },
+        })
+      );
       return {
         ...updated,
         createdAt: updated.createdAt.toISOString(),
@@ -505,7 +535,7 @@ export async function deleteListing(id: string): Promise<boolean> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      await prisma.companionListing.delete({ where: { id } });
+      await withPrismaRetry(() => prisma.companionListing.delete({ where: { id } }));
       return true;
     } catch (err) {
       console.warn('[Database] Prisma deleteListing error', err);
@@ -528,7 +558,9 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const user = await prisma.user.findUnique({ where: { email: normalized } });
+      const user = await withPrismaRetry(() =>
+        prisma.user.findUnique({ where: { email: normalized } })
+      );
       if (user) {
         return {
           ...user,
@@ -550,7 +582,9 @@ export async function getUserById(id: string): Promise<User | null> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const user = await prisma.user.findUnique({ where: { id } });
+      const user = await withPrismaRetry(() =>
+        prisma.user.findUnique({ where: { id } })
+      );
       if (user) {
         return {
           ...user,
@@ -579,15 +613,17 @@ export async function createUser(data: {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const created = await prisma.user.create({
-        data: {
-          name: data.name,
-          email: normalized,
-          passwordHash: data.passwordHash,
-          role: data.role || 'EDITOR',
-          status: data.status || 'PENDING_APPROVAL',
-        },
-      });
+      const created = await withPrismaRetry(() =>
+        prisma.user.create({
+          data: {
+            name: data.name,
+            email: normalized,
+            passwordHash: data.passwordHash,
+            role: data.role || 'EDITOR',
+            status: data.status || 'PENDING_APPROVAL',
+          },
+        })
+      );
       return {
         ...created,
         createdAt: created.createdAt.toISOString(),
@@ -618,9 +654,11 @@ export async function getUsers(): Promise<User[]> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const users = await prisma.user.findMany({
-        orderBy: { createdAt: 'desc' },
-      });
+      const users = await withPrismaRetry(() =>
+        prisma.user.findMany({
+          orderBy: { createdAt: 'desc' },
+        })
+      );
       return users.map(u => ({
         ...u,
         createdAt: u.createdAt.toISOString(),
@@ -639,10 +677,12 @@ export async function updateUserStatus(id: string, status: UserStatus): Promise<
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const updated = await prisma.user.update({
-        where: { id },
-        data: { status },
-      });
+      const updated = await withPrismaRetry(() =>
+        prisma.user.update({
+          where: { id },
+          data: { status },
+        })
+      );
       return {
         ...updated,
         createdAt: updated.createdAt.toISOString(),
@@ -678,23 +718,25 @@ export async function createInquiry(data: {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const created = await prisma.inquiry.create({
-        data: {
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          targetCity: data.targetCity,
-          listingId: data.listingId || null,
-          eventDate: new Date(data.eventDate),
-          message: data.message,
-          status: 'NEW',
-        },
-        include: {
-          listing: {
-            select: { id: true, fullName: true, headline: true },
+      const created = await withPrismaRetry(() =>
+        prisma.inquiry.create({
+          data: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            targetCity: data.targetCity,
+            listingId: data.listingId || null,
+            eventDate: new Date(data.eventDate),
+            message: data.message,
+            status: 'NEW',
           },
-        },
-      });
+          include: {
+            listing: {
+              select: { id: true, fullName: true, headline: true },
+            },
+          },
+        })
+      );
       return {
         ...created,
         eventDate: created.eventDate.toISOString(),
@@ -737,14 +779,16 @@ export async function getInquiries(): Promise<Inquiry[]> {
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const inquiries = await prisma.inquiry.findMany({
-        include: {
-          listing: {
-            select: { id: true, fullName: true, headline: true },
+      const inquiries = await withPrismaRetry(() =>
+        prisma.inquiry.findMany({
+          include: {
+            listing: {
+              select: { id: true, fullName: true, headline: true },
+            },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+          orderBy: { createdAt: 'desc' },
+        })
+      );
       return inquiries.map(i => ({
         ...i,
         eventDate: i.eventDate.toISOString(),
@@ -778,10 +822,12 @@ export async function updateInquiryStatus(id: string, status: InquiryStatus): Pr
   const usePg = await checkPostgres();
   if (usePg) {
     try {
-      const updated = await prisma.inquiry.update({
-        where: { id },
-        data: { status },
-      });
+      const updated = await withPrismaRetry(() =>
+        prisma.inquiry.update({
+          where: { id },
+          data: { status },
+        })
+      );
       return {
         ...updated,
         eventDate: updated.eventDate.toISOString(),

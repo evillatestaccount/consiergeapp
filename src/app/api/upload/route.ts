@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { requireAuth } from '@/lib/auth';
+import { isObjectStorageConfigured, uploadToObjectStorage } from '@/lib/storage';
 
 export async function POST(request: NextRequest) {
   const authCheck = requireAuth(request, ['SUPER_ADMIN', 'EDITOR']);
@@ -27,21 +28,26 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filename = `avatar-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
-    // Save to public/uploads
+    // Prefer Neon S3 Object Storage when configured
+    if (isObjectStorageConfigured()) {
+      const { url } = await uploadToObjectStorage(filename, buffer, file.type);
+      return NextResponse.json({ success: true, url, storage: 'neon-s3' });
+    }
+
+    // Fallback to local filesystem
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    const ext = file.name.split('.').pop() || 'jpg';
-    const filename = `avatar-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
     const filePath = path.join(uploadsDir, filename);
-
     fs.writeFileSync(filePath, buffer);
 
     const publicUrl = `/uploads/${filename}`;
-    return NextResponse.json({ success: true, url: publicUrl });
+    return NextResponse.json({ success: true, url: publicUrl, storage: 'local' });
   } catch (error: any) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
