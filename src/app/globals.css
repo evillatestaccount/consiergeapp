@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-magenta: #D91680;
+    --deep-purple: #4B1248;
+    --crimson: #E62044;
+    --blush: #FDEEF4;
+    color-scheme: dark;
+    accent-color: #D91680;
+  }
+
+  html {
+    color-scheme: dark;
+    accent-color: #D91680;
+    scrollbar-color: #4B1248 #0B070E;
+    scrollbar-width: thin;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0B070E;
+    color: #F8F9FA;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    overflow-x: hidden;
+    scrollbar-color: #4B1248 #0B070E;
+    scrollbar-width: thin;
+  }
+
+  /* Typographic polish: balanced headlines and pretty paragraph breaks */
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: #D91680;
+    color: #FFFFFF;
+  }
+
+  :focus-visible {
+    outline: 2px solid #D91680;
+    outline-offset: 2px;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  ::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  select,
+  select option {
+    background-color: #170C19 !important;
+    color: #FFFFFF !important;
+  }
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(26, 13, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(217, 22, 128, 0.2);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(217, 22, 128, 0.4);
+  box-shadow: 0 16px 36px -10px rgba(217, 22, 128, 0.25);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  border-color: #D91680;
+  box-shadow: 0 0 0 2px rgba(217, 22, 128, 0.3);
+  outline: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B070E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4B1248;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D91680;
+}
+
+/* Luxury Glow Effects */
+.magenta-glow {
+  box-shadow: 0 0 50px -10px rgba(217, 22, 128, 0.35);
+}
+
+.purple-glow {
+  box-shadow: 0 0 50px -10px rgba(75, 18, 72, 0.5);
+}

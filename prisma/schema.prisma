@@ -1,0 +1,113 @@
+// Prisma Schema for Aura Social Directory
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  EDITOR
+}
+
+enum UserStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  WEEKENDS_ONLY
+  BOOKED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  RESOLVED
+}
+
+model User {
+  id           String             @id @default(uuid())
+  name         String
+  email        String             @unique
+  passwordHash String
+  role         Role               @default(EDITOR)
+  status       UserStatus         @default(PENDING_APPROVAL)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  listings     CompanionListing[]
+
+  @@map("users")
+}
+
+model City {
+  id             String             @id @default(uuid())
+  name           String
+  slug           String             @unique
+  stateOrCountry String
+  heroImage      String
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  listings       CompanionListing[]
+
+  @@map("cities")
+}
+
+model CompanionListing {
+  id                String             @id @default(uuid())
+  editorId          String
+  editor            User               @relation(fields: [editorId], references: [id], onDelete: Cascade)
+  fullName          String
+  headline          String
+  cityId            String
+  city              City               @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  citySlug          String
+  languages         String[]
+  services          String[]
+  hourlyRate        Float
+  dailyRate         Float
+  currency          String             @default("USD")
+  whatsapp          String?
+  availability      AvailabilityStatus @default(AVAILABLE)
+  bio               String
+  images            String[]
+  status            ListingStatus      @default(DRAFT)
+  verificationBadge Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  inquiries         Inquiry[]
+
+  @@index([citySlug])
+  @@index([status])
+  @@map("companion_listings")
+}
+
+model Inquiry {
+  id         String            @id @default(uuid())
+  name       String
+  email      String
+  phone      String
+  targetCity String
+  listingId  String?
+  listing    CompanionListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  eventDate  DateTime
+  message    String
+  status     InquiryStatus     @default(NEW)
+  createdAt  DateTime          @default(now())
+
+  @@map("inquiries")
+}

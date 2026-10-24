@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # 1. PostgreSQL Database Service
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: aura-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aura_directory
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aura_directory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # -------------------------------------------------------------
+  # 2. Aura Social Directory Application Service (Next.js + Bun)
+  # -------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aura-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/aura_directory?schema=public"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      JWT_SECRET: "super-secret-jwt-key-aura-vip-concierge-2026"
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+      REVALIDATION_TOKEN: "secure-reval-token"
+      SMTP_HOST: "smtp.mailtrap.io"
+      SMTP_PORT: 2525
+      SMTP_USER: "smtp-username"
+      SMTP_PASS: "smtp-password"
+      ADMIN_EMAIL: "admin@auradirectory.com"
+    volumes:
+      - uploads_data:/app/public/uploads
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
