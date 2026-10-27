@@ -3,7 +3,8 @@ import { getCities, getListings } from '@/lib/db';
 import HeroSection from '@/components/HeroSection';
 import FeaturedSection from '@/components/FeaturedSection';
 import HowItWorksAndCities from '@/components/HowItWorksAndCities';
-import { WebsiteJsonLd } from '@/components/JsonLd';
+import FaqSection from '@/components/FaqSection';
+import { WebsiteJsonLd, FaqJsonLd } from '@/components/JsonLd';
 import Link from 'next/link';
 import { ShieldCheck, Lock, Star, Sparkles, Award, CheckCircle2 } from 'lucide-react';
 
@@ -184,6 +185,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* 5. FREQUENTLY ASKED QUESTIONS & SCHEMA */}
+      <FaqJsonLd />
+      <FaqSection />
 
     </div>
   );

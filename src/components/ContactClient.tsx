@@ -18,6 +18,7 @@ import {
 import ConciergeMap from '@/components/ConciergeMap';
 import LuxurySelect from '@/components/LuxurySelect';
 import { useUserLocation, getTimezoneLocation } from '@/lib/location';
+import { event as trackGaEvent } from '@/lib/gtag';
 
 export default function ContactClient() {
   const searchParams = useSearchParams();
@@ -85,6 +86,12 @@ export default function ContactClient() {
       setSubmittedData({
         ...data.inquiry,
         companionName,
+      });
+
+      trackGaEvent({
+        action: 'generate_lead',
+        category: 'Inquiry',
+        label: targetCity || 'General VIP Inquiry',
       });
     } catch (err: any) {
       setErrorMessage(err.message || 'An unexpected error occurred.');

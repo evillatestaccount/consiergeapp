@@ -252,3 +252,59 @@ export function ContactJsonLd() {
     />
   );
 }
+
+export function FaqJsonLd({
+  faqs,
+}: {
+  faqs?: Array<{ question: string; answer: string }>;
+}) {
+  const defaultFaqs = [
+    {
+      question: 'How do I book a verified VIP escort on EscortVilla?',
+      answer:
+        'Select your preferred destination city, browse our verified companion profiles, and either connect directly via WhatsApp or submit a private reservation request through our VIP Concierge Desk.',
+    },
+    {
+      question: 'Are all escort profiles on EscortVilla verified?',
+      answer:
+        'Yes. Every profile undergoes rigorous authenticity verification, including photo validation, identity screening, and rate transparency, ensuring a trustworthy and premium experience.',
+    },
+    {
+      question: 'Which cities are covered by EscortVilla?',
+      answer:
+        'EscortVilla provides verified VIP escort directories in top global hubs including London, New York, Delhi, and Mumbai, with companion services available for international travel.',
+    },
+    {
+      question: 'How is client privacy and confidentiality protected?',
+      answer:
+        'All client inquiries, booking communications, and personal details are handled under strict confidentiality protocols. Data is never shared or retained beyond the reservation fulfillment.',
+    },
+    {
+      question: 'Can I book companions for business dinners and VIP travel?',
+      answer:
+        'Yes. Our companions specialize in executive accompaniment, black-tie galas, private dinners, social events, and international travel accompaniment.',
+    },
+  ];
+
+  const items = faqs || defaultFaqs;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}

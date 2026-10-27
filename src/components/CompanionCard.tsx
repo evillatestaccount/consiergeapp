@@ -7,6 +7,7 @@ import { CompanionListing } from '@/lib/types';
 import { formatPrice } from '@/lib/currency';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
+import { event as trackGaEvent } from '@/lib/gtag';
 
 interface CompanionCardProps {
   listing: CompanionListing;
@@ -30,7 +31,7 @@ export default function CompanionCard({ listing }: CompanionCardProps) {
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#1A0B1A]">
         <Image
           src={primaryImage}
-          alt={listing.fullName}
+          alt={`${listing.fullName} - VIP Escort in ${listing.city?.name || listing.citySlug}`}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
@@ -130,7 +131,14 @@ export default function CompanionCard({ listing }: CompanionCardProps) {
             href={getWhatsAppUrl(listing)}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              trackGaEvent({
+                action: 'contact_whatsapp',
+                category: 'Engagement',
+                label: `${listing.fullName} (${listing.citySlug})`,
+              });
+            }}
             className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 text-xs font-medium transition-all group/wa"
             title={`Contact ${listing.fullName} on WhatsApp`}
           >

@@ -1,8 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { WebsiteJsonLd } from '@/components/JsonLd';
 import { getCities } from '@/lib/db';
+
+export const viewport: Viewport = {
+  themeColor: '#0B070E',
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -25,6 +33,14 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'EscortVilla VIP Management' }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://escortvilla.com'),
+  alternates: {
+    canonical: './',
+  },
+  manifest: '/manifest.webmanifest',
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+  },
   openGraph: {
     title: 'EscortVilla | Premier VIP Escort Services & Luxury Escort Directory',
     description: 'Verified independent escorts and elite VIP escort services for dinner dates, international travel, and private bookings.',
@@ -76,8 +92,10 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <WebsiteJsonLd />
       </head>
       <body className="min-h-screen flex flex-col bg-[#0B070E] text-white selection:bg-[#D91680] selection:text-white antialiased font-sans">
+        <GoogleAnalytics />
         <Navbar cities={cities} />
         <main className="flex-grow">{children}</main>
         <Footer />

@@ -5,7 +5,8 @@ import { getCities, getCityBySlug, getListings } from '@/lib/db';
 import CityHero from '@/components/CityHero';
 import FilterSidebar from '@/components/FilterSidebar';
 import CompanionCard from '@/components/CompanionCard';
-import { DirectoryJsonLd } from '@/components/JsonLd';
+import FaqSection from '@/components/FaqSection';
+import { DirectoryJsonLd, FaqJsonLd } from '@/components/JsonLd';
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 
@@ -194,6 +195,10 @@ export default async function CityDirectoryPage({ params, searchParams }: CityPa
 
         </div>
       </div>
+
+      {/* City Specific FAQ & Schema.org Rich Snippet */}
+      <FaqJsonLd />
+      <FaqSection cityName={city.name} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { ProfileJsonLd } from '@/components/JsonLd';
 import { formatPrice, getCurrencySymbol } from '@/lib/currency';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 import WhatsAppIcon from '@/components/WhatsAppIcon';
+import WhatsAppDirectButton from '@/components/WhatsAppDirectButton';
 import {
   ShieldCheck,
   MapPin,
@@ -248,17 +249,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             {/* Action Buttons: WhatsApp & Concierge Desk */}
             <div className="pt-2 space-y-3">
-              {/* WhatsApp Direct Contact Button */}
-              <a
-                href={getWhatsAppUrl(listing)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#25D366] via-[#1fad53] to-[#128C7E] hover:from-[#22c35e] hover:to-[#0f766a] text-white font-bold text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 flex items-center justify-center space-x-2.5 transition-all text-center group"
-              >
-                <WhatsAppIcon className="w-5 h-5 fill-current" />
-                <span>Contact on WhatsApp</span>
-                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </a>
+              {/* WhatsApp Direct Contact Button with Analytics Tracking */}
+              <WhatsAppDirectButton
+                url={getWhatsAppUrl(listing)}
+                name={listing.fullName}
+                city={listing.city?.name || listing.citySlug}
+              />
 
               {/* Concierge Desk Web Form Button */}
               <Link
