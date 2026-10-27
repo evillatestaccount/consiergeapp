@@ -2,71 +2,88 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { AlertTriangle, ShieldAlert, ArrowRight, XCircle } from 'lucide-react';
+import { ShieldAlert, ArrowRight, XCircle } from 'lucide-react';
 
 const STORAGE_KEY = 'escortvilla_age_verified';
 
 export default function AgeVerificationModal() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [isVerified, setIsVerified] = useState<boolean>(true); // start true to prevent SSR flicker
+  const [mounted, setMounted] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if user has previously verified their age
+    setMounted(true);
     try {
+      if (typeof window !== 'undefined' && (window.location.search.includes('reset_age=1') || window.location.search.includes('verify=1'))) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
       const verified = localStorage.getItem(STORAGE_KEY);
       if (verified === 'true') {
         setIsVerified(true);
       } else {
         setIsVerified(false);
-        // Show modal natively
-        if (dialogRef.current && !dialogRef.current.open) {
-          dialogRef.current.showModal();
-        }
       }
     } catch {
-      // In case localStorage is blocked in private browsing
       setIsVerified(false);
-      if (dialogRef.current && !dialogRef.current.open) {
-        dialogRef.current.showModal();
-      }
     }
   }, []);
+
+  useEffect(() => {
+    if (mounted && !isVerified && dialogRef.current) {
+      if (typeof dialogRef.current.showModal === 'function') {
+        if (!dialogRef.current.open) {
+          try {
+            dialogRef.current.showModal();
+          } catch (e) {
+            console.error('Failed to open age modal via showModal', e);
+          }
+        }
+      } else {
+        dialogRef.current.setAttribute('open', '');
+      }
+    }
+  }, [mounted, isVerified]);
 
   const handleConfirmAge = () => {
     try {
       localStorage.setItem(STORAGE_KEY, 'true');
     } catch {
-      // ignore storage write errors
+      // ignore
     }
     setIsVerified(true);
-    if (dialogRef.current) {
-      dialogRef.current.close();
+    if (dialogRef.current && dialogRef.current.open) {
+      try {
+        dialogRef.current.close();
+      } catch (e) {
+        dialogRef.current.removeAttribute('open');
+      }
     }
   };
 
   const handleDeclineAge = () => {
-    // Safe redirect away from adult-oriented website
     window.location.href = 'https://www.google.com';
   };
 
-  if (isVerified) {
+  // If already verified and confirmed, unmount
+  if (mounted && isVerified) {
     return null;
   }
 
   return (
     <dialog
       ref={dialogRef}
+      id="age-verification-dialog"
       aria-labelledby="age-dialog-title"
       aria-describedby="age-dialog-desc"
-      className="p-0 bg-transparent text-white border-0 outline-none max-w-lg w-[92vw] m-auto backdrop:bg-[#070308]/90 backdrop:backdrop-blur-xl fixed inset-0 z-[9999]"
+      className="p-0 bg-transparent text-white border-0 outline-none max-w-lg w-[92vw] m-auto fixed inset-0 z-[99999]"
       onCancel={(e) => {
-        // Prevent dismissal with Esc key without explicit age confirmation
+        // Prevent Esc key from closing without explicit confirmation
         e.preventDefault();
       }}
     >
-      <div className="relative rounded-3xl bg-gradient-to-b from-[#1E0B20] via-[#120715] to-[#0A040B] border border-rose-500/40 p-6 sm:p-8 shadow-[0_0_60px_rgba(225,29,72,0.35)] overflow-hidden">
+      <div className="relative rounded-3xl bg-gradient-to-b from-[#1E0B20] via-[#120715] to-[#0A040B] border border-rose-500/50 p-6 sm:p-8 shadow-[0_0_80px_rgba(225,29,72,0.45)] overflow-hidden">
         {/* Ambient Top Glow */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 bg-rose-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 bg-rose-600/25 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 text-center">
           {/* Logo & 18+ Warning Badge */}
@@ -93,7 +110,7 @@ export default function AgeVerificationModal() {
 
           {/* Description */}
           <div id="age-dialog-desc" className="space-y-3 text-xs sm:text-sm text-neutral-300 leading-relaxed mb-8">
-            <p className="bg-rose-950/30 border border-rose-500/20 rounded-xl p-3 text-rose-200 text-xs font-medium">
+            <p className="bg-rose-950/40 border border-rose-500/30 rounded-xl p-3 text-rose-200 text-xs font-medium">
               ⚠️ <strong>Warning:</strong> This website contains adult-oriented content, VIP escort services, and private directory listings intended exclusively for legal adults.
             </p>
             <p>

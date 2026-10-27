@@ -49,10 +49,20 @@
   }
 
   dialog:modal {
+    padding: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    max-width: 34rem;
+    width: 92vw;
+    margin: auto;
     overscroll-behavior: contain;
   }
 
   dialog::backdrop {
+    background-color: rgba(7, 3, 8, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     overflow: hidden;
     overscroll-behavior: contain;
   }
