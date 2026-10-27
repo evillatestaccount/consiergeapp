@@ -108,6 +108,16 @@ export default function Footer() {
 
         </div>
 
+        {/* 18+ Adult Content & Compliance Notice */}
+        <div className="my-8 p-4 rounded-2xl bg-rose-950/20 border border-rose-500/30 text-rose-200/90 text-xs leading-relaxed flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+          <div className="flex-shrink-0 px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold text-xs uppercase tracking-wider">
+            18+ ONLY
+          </div>
+          <p className="text-[11px] sm:text-xs">
+            <strong>ADULTS ONLY WARNING:</strong> This website contains adult-oriented directories, VIP escort advertisements, and private companion services strictly for individuals aged 18 years or older (or the legal age of majority in your jurisdiction). All companions featured are confirmed consenting adults.
+          </p>
+        </div>
+
         {/* Ethical Standards & Disclaimers */}
         <div className="pt-8 border-t border-white/10 text-[11px] text-neutral-300 leading-relaxed space-y-3">
           <p>

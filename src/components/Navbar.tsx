@@ -68,9 +68,14 @@ export default function Navbar({ cities = [] }: NavbarProps) {
               />
             </div>
             <div>
-              <span className="text-2xl font-serif tracking-wider text-white font-bold group-hover:text-magenta-300 transition-colors">
-                ESCORT<span className="text-magenta-400">VILLA</span>
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-serif tracking-wider text-white font-bold group-hover:text-magenta-300 transition-colors">
+                  ESCORT<span className="text-magenta-400">VILLA</span>
+                </span>
+                <span className="px-1.5 py-0.5 rounded-md border border-rose-500/50 bg-rose-500/15 text-rose-300 text-[10px] font-bold tracking-wider uppercase">
+                  18+
+                </span>
+              </div>
               <span className="text-[10px] tracking-[0.25em] text-magenta-300 block font-sans uppercase font-medium">
                 VIP Escort Directory
               </span>

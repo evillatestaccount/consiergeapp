@@ -48,6 +48,15 @@
     outline-offset: 2px;
   }
 
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+
   textarea {
     resize: vertical;
   }

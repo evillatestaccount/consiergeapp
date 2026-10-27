@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import AgeVerificationModal from '@/components/AgeVerificationModal';
 import { WebsiteJsonLd } from '@/components/JsonLd';
 import { getCities } from '@/lib/db';
 
@@ -95,6 +96,7 @@ export default async function RootLayout({
         <WebsiteJsonLd />
       </head>
       <body className="min-h-screen flex flex-col bg-[#0B070E] text-white selection:bg-[#D91680] selection:text-white antialiased font-sans">
+        <AgeVerificationModal />
         <GoogleAnalytics />
         <Navbar cities={cities} />
         <main className="flex-grow">{children}</main>
