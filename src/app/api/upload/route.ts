@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { requireAuth } from '@/lib/auth';
 import { isObjectStorageConfigured, uploadToObjectStorage } from '@/lib/storage';
+import { isCloudinaryConfigured, uploadToCloudinary } from '@/lib/cloudinary';
 
 export async function POST(request: NextRequest) {
   const authCheck = requireAuth(request, ['SUPER_ADMIN', 'EDITOR']);
@@ -30,6 +31,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `avatar-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+    // Prefer Cloudinary when configured
+    if (isCloudinaryConfigured()) {
+      const { url } = await uploadToCloudinary(buffer);
+      return NextResponse.json({ success: true, url, storage: 'cloudinary' });
+    }
 
     // Prefer Neon S3 Object Storage when configured
     if (isObjectStorageConfigured()) {
